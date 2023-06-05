@@ -5,48 +5,51 @@ import {
   View,
   Button,
   TextInput,
-  ScrollView,
+  FlatList,
 } from 'react-native';
+import CiljPrikaz from './components/ciljPrikaz';
+import CiljUnos from './components/ciljUnos';
 
 export default function App() {
-  const [unos, postaviUnos] = useState('');
   const [ciljevi, postaviCiljeve] = useState([]);
+  const [unosVidljiv, postaviVidljivostUnosa] = useState(false);
 
-  const noviUnos = (tekst) => {
-    postaviUnos(tekst);
+  const noviCilj = (unos) => {
+    postaviCiljeve((ciljevi) => [
+      ...ciljevi,
+      { key: Math.random().toString(), value: unos },
+    ]);
+    postaviVidljivostUnosa(false)
   };
 
-  const noviCilj = () => {
-    console.log(unos);
-    postaviCiljeve(ciljevi.concat(unos));
-    //postaviUnos('');
+  const brisiCilj = (ciljID) => {
+    postaviCiljeve((ciljevi) => {
+      return ciljevi.filter((c) => c.broj !== ciljID);
+    });
   };
+
+  const odustaniModal = () => {
+    postaviVidljivostUnosa(false)
+  }
 
   return (
     <View style={stilovi.ekran}>
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}>
-        <TextInput
-          placeholder="dodaj cilj"
-          style={stilovi.unos}
-          value={unos}
-          onChangeText={noviUnos}
-        />
-        <Button title="Dodaj" onPress={noviCilj} />
-      </View>
-      <ScrollView style={{margin: 10}}>
-        <View>
-          {ciljevi.map((cilj) => (
-            <View key={cilj} style={stilovi.lista}>
-              <Text>{cilj}</Text>
-            </View>
-          ))}
-        </View>
-      </ScrollView>
+      <Button
+        title="Dodaj novi cilj"
+        onPress={() => postaviVidljivostUnosa(true)}
+      />
+      <CiljUnos vidljiv={unosVidljiv} postaviCiljeve={noviCilj} odustani={odustaniModal}/>
+      <FlatList
+        keyExtractor={(item, index) => item.broj}
+        data={ciljevi}
+        renderItem={(el) => (
+          <CiljPrikaz
+            naslov={el.item.value}
+            id={el.item.key}
+            brisanje={() => brisiCilj(el.item.broj)}
+          />
+        )}
+      />
     </View>
   );
 }
@@ -54,18 +57,5 @@ export default function App() {
 const stilovi = StyleSheet.create({
   ekran: {
     padding: 50,
-  },
-  unos: {
-    width: '70%',
-    marginBottom: 5,
-    borderBottomColor: 'black',
-    borderBottomWidth: 1,
-  },
-  lista: {
-    padding: 10,
-    marginVertical: 10,
-    backgroundColor: '#ccc',
-    borderColor: 'black',
-    borderWidth: 1,
   },
 });
